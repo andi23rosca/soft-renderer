@@ -38,10 +38,6 @@ pub const Renderer = struct {
     }
 
     pub fn clear_screen(self: *Renderer, color: u32) !void {
-        if (c.SDL_RenderClear(self.sdl_renderer) != 0) {
-            return error.RenderError;
-        }
-
         for (self.color_buffer) |_, index| {
             self.color_buffer[index] = color;
         }
@@ -54,23 +50,30 @@ pub const Renderer = struct {
         while (x < self.window.width) : (x += spacing) {
             y = 0;
             while (y < self.window.height) : (y += spacing) {
-                self.color_buffer[y * self.window.width + x] = color;
+                self.draw_pixel(color, @intCast(isize, x), @intCast(isize, y));
             }
         }
     }
 
-    pub fn draw_rect(self: *Renderer, color: u32, x: usize, y: usize, w: usize, h: usize) void {
+    pub fn draw_rect(self: *Renderer, color: u32, x: isize, y: isize, w: usize, h: usize) void {
         var init_y = y;
         var x1 = x;
         var y1 = y;
-        var x2 = x + w;
-        var y2 = y + h;
+        var x2 = x + @intCast(isize, w);
+        var y2 = y + @intCast(isize, h);
         while (x1 < x2) : (x1 += 1) {
             y1 = init_y;
             while (y1 < y2) : (y1 += 1) {
-                self.color_buffer[y1 * self.window.width + x1] = color;
+                self.draw_pixel(color, x1, y1);
             }
         }
+    }
+
+    pub fn draw_pixel(self: *Renderer, color: u32, x: isize, y: isize) void {
+        if (x < 0 or x >= self.window.width or y < 0 or y >= self.window.height) {
+            return;
+        }
+        self.color_buffer[@intCast(usize, y) * self.window.width + @intCast(usize, x)] = color;
     }
 
     pub fn render(self: *Renderer) !void {
