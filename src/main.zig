@@ -12,7 +12,6 @@ const Triangle = @import("geometry.zig").Triangle;
 
 const FPS = 60;
 const FRAME_TARGET_TIME: u32 = 1000 / FPS;
-var cube_rotation = Vector3{ .x = 0, .y = 0, .z = 0 };
 var previous_frame_time: u32 = 0;
 var triangles_to_render: ArrayList(Triangle) = undefined;
 
@@ -47,27 +46,22 @@ fn update(cube: *Cube, camera: *Camera) !void {
 
     try triangles_to_render.resize(0);
 
-    cube_rotation = cube_rotation.add_scalar(0.005);
+    cube.entity.rotation = cube.entity.rotation.add_scalar(0.005);
 
-    for (cube.faces) |face| {
+    for (cube.mesh.faces.items) |face| {
         var face_vertices: [3]Vector3 = undefined;
-        face_vertices[0] = cube.geometry[face.a - 1];
-        face_vertices[1] = cube.geometry[face.b - 1];
-        face_vertices[2] = cube.geometry[face.c - 1];
+        face_vertices[0] = cube.mesh.vertices.items[face.a - 1];
+        face_vertices[1] = cube.mesh.vertices.items[face.b - 1];
+        face_vertices[2] = cube.mesh.vertices.items[face.c - 1];
 
         var projected_triangle: Triangle = undefined;
         for (face_vertices) |vertex, face_index| {
-            var transformed = vertex.rotate(cube_rotation).sub(camera.position);
+            var transformed = vertex.rotate(cube.entity.rotation).sub(camera.position);
             var projected = Vector2.from_vec3(transformed).mult_scalar(camera.fov).div_scalar(transformed.z);
             projected_triangle.points[face_index] = projected;
         }
         try triangles_to_render.append(projected_triangle);
     }
-
-    // for (cube_points) |point, index| {
-    //     var transformed = point.rotate(cube_rotation).sub(camera.position);
-    //     projected_points[index] = Vector2.from_vec3(transformed).mult_scalar(camera.fov).div_scalar(transformed.z);
-    // }
 }
 
 fn render(renderer: *Renderer) !void {
@@ -120,7 +114,7 @@ pub fn main() anyerror!void {
     var is_running = true;
     var camera = Camera{ .position = Vector3{ .x = 0, .y = 0, .z = -5 }, .fov = 640 };
 
-    var cube = Cube.init(1);
+    var cube = try Cube.init(allocator, 1);
 
     setup(allocator);
     defer {
