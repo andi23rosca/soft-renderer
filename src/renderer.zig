@@ -59,7 +59,7 @@ pub const Renderer = struct {
         var delta_x: f32 = @intToFloat(f32, x1) - @intToFloat(f32, x0);
         var delta_y: f32 = @intToFloat(f32, y1) - @intToFloat(f32, y0);
 
-        var side_length: f32 = std.math.absFloat(std.math.max(delta_x, delta_y));
+        var side_length: f32 = std.math.max(std.math.absFloat(delta_x), std.math.absFloat(delta_y));
 
         var x_inc: f32 = delta_x / side_length;
         var y_inc: f32 = delta_y / side_length;
@@ -77,6 +77,21 @@ pub const Renderer = struct {
             current_x += x_inc;
             current_y += y_inc;
         }
+    }
+
+    pub fn draw_triangle(
+        self: *Renderer,
+        color: u32,
+        x0: isize,
+        y0: isize,
+        x1: isize,
+        y1: isize,
+        x2: isize,
+        y2: isize,
+    ) void {
+        self.draw_line(color, x0, y0, x1, y1);
+        self.draw_line(color, x1, y1, x2, y2);
+        self.draw_line(color, x2, y2, x0, y0);
     }
 
     pub fn draw_rect(self: *Renderer, color: u32, x: isize, y: isize, w: usize, h: usize) void {
