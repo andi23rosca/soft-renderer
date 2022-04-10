@@ -72,4 +72,9 @@ pub const Cube = struct {
             .entity = .{},
         };
     }
+
+    pub fn deinit(self: *Cube) void {
+        self.mesh.faces.deinit();
+        self.mesh.vertices.deinit();
+    }
 };

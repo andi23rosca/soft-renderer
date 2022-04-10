@@ -118,6 +118,7 @@ pub fn main() anyerror!void {
 
     setup(allocator);
     defer {
+        cube.deinit();
         renderer.deinit();
         window.deinit();
     }
