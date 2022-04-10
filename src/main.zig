@@ -3,12 +3,14 @@ const c = @import("c.zig").c;
 const ArrayList = std.ArrayList;
 const Window = @import("window.zig").Window;
 const Renderer = @import("renderer.zig").Renderer;
-const v = @import("vector.zig");
-const Vector3 = v.Vector3;
-const Vector2 = v.Vector2;
+const Vector3 = @import("vector.zig").Vector3;
+const Vector2 = @import("vector.zig").Vector2;
 const Camera = @import("camera.zig").Camera;
 const Cube = @import("geometry.zig").Cube;
+const Mesh = @import("geometry.zig").Mesh;
+const Entity = @import("geometry.zig").Entity;
 const Triangle = @import("geometry.zig").Triangle;
+const read_obj_file = @import("reader.zig").read_obj_file;
 
 const FPS = 60;
 const FRAME_TARGET_TIME: u32 = 1000 / FPS;
@@ -36,7 +38,7 @@ fn setup(allocator: std.mem.Allocator) void {
     triangles_to_render = ArrayList(Triangle).init(allocator);
 }
 
-fn update(cube: *Cube, camera: *Camera) !void {
+fn update(mesh: *Mesh, entity: *Entity, camera: *Camera) !void {
     var delta: isize = c.SDL_GetTicks() - previous_frame_time;
     var time_to_wait: isize = FRAME_TARGET_TIME - delta;
     if (time_to_wait > 0 and time_to_wait < FRAME_TARGET_TIME) {
@@ -46,17 +48,21 @@ fn update(cube: *Cube, camera: *Camera) !void {
 
     try triangles_to_render.resize(0);
 
-    cube.entity.rotation = cube.entity.rotation.add_scalar(0.005);
+    entity.rotation = entity.rotation.add(.{
+        .x = 0.01,
+        .y = 0,
+        .z = 0,
+    });
 
-    for (cube.mesh.faces.items) |face| {
+    for (mesh.faces.items) |face| {
         var face_vertices: [3]Vector3 = undefined;
-        face_vertices[0] = cube.mesh.vertices.items[face.a - 1];
-        face_vertices[1] = cube.mesh.vertices.items[face.b - 1];
-        face_vertices[2] = cube.mesh.vertices.items[face.c - 1];
+        face_vertices[0] = mesh.vertices.items[face.a - 1];
+        face_vertices[1] = mesh.vertices.items[face.b - 1];
+        face_vertices[2] = mesh.vertices.items[face.c - 1];
 
         var projected_triangle: Triangle = undefined;
         for (face_vertices) |vertex, face_index| {
-            var transformed = vertex.rotate(cube.entity.rotation).sub(camera.position);
+            var transformed = vertex.rotate(entity.rotation).sub(camera.position);
             var projected = Vector2.from_vec3(transformed).mult_scalar(camera.fov).div_scalar(transformed.z);
             projected_triangle.points[face_index] = projected;
         }
@@ -78,15 +84,15 @@ fn render(renderer: *Renderer) !void {
             });
         }
 
-        for (projected_points) |point| {
-            renderer.draw_rect(
-                0xFF00FF00,
-                @floatToInt(isize, point.x),
-                @floatToInt(isize, point.y),
-                4,
-                4,
-            );
-        }
+        // for (projected_points) |point| {
+        //     renderer.draw_rect(
+        //         0xFF00FF00,
+        //         @floatToInt(isize, point.x),
+        //         @floatToInt(isize, point.y),
+        //         4,
+        //         4,
+        //     );
+        // }
 
         renderer.draw_triangle(
             0xFFFFFFFF,
@@ -114,18 +120,24 @@ pub fn main() anyerror!void {
     var is_running = true;
     var camera = Camera{ .position = Vector3{ .x = 0, .y = 0, .z = -5 }, .fov = 640 };
 
-    var cube = try Cube.init(allocator, 1);
+    var mesh = try read_obj_file(allocator, "models/cube.obj");
+    var entity = Entity{ .rotation = .{
+        .x = 0,
+        .y = 0,
+        .z = 0,
+    } };
+    // var cube = try Cube.init(allocator, 1);
 
     setup(allocator);
     defer {
-        cube.deinit();
+        // cube.deinit();
         renderer.deinit();
         window.deinit();
     }
 
     while (is_running) {
         try process_events(&is_running);
-        try update(&cube, &camera);
+        try update(&mesh, &entity, &camera);
         try render(&renderer);
     }
 }
