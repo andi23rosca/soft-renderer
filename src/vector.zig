@@ -34,6 +34,14 @@ pub const Vector2 = struct {
     pub fn div(v: Vector2, vec: Vector2) Vector2 {
         return Vector2{ .x = v.x / vec.x, .y = v.y / vec.y };
     }
+    pub fn length(v: Vector2) f32 {
+        return std.math.sqrt(
+            std.math.pow(f32, v.x, 2) + std.math.pow(f32, v.y, 2),
+        );
+    }
+    pub fn dot(a: Vector2, b: Vector2) f32 {
+        return a.x * b.x + a.y * b.y;
+    }
 };
 
 pub const Vector3 = struct {
@@ -53,17 +61,17 @@ pub const Vector3 = struct {
     pub fn div_scalar(v: Vector3, scalar: f32) Vector3 {
         return Vector3{ .x = v.x / scalar, .y = v.y / scalar, .z = v.z / scalar };
     }
-    pub fn mult(v: Vector3, vec: Vector3) Vector3 {
-        return Vector3{ .x = v.x * vec.x, .y = v.y * vec.y, .z = v.z * vec.z };
+    pub fn mult(a: Vector3, b: Vector3) Vector3 {
+        return Vector3{ .x = a.x * b.x, .y = a.y * b.y, .z = a.z * b.z };
     }
-    pub fn add(v: Vector3, vec: Vector3) Vector3 {
-        return Vector3{ .x = v.x + vec.x, .y = v.y + vec.y, .z = v.z + vec.z };
+    pub fn add(a: Vector3, b: Vector3) Vector3 {
+        return Vector3{ .x = a.x + b.x, .y = a.y + b.y, .z = a.z + b.z };
     }
-    pub fn sub(v: Vector3, vec: Vector3) Vector3 {
-        return Vector3{ .x = v.x - vec.x, .y = v.y - vec.y, .z = v.z - vec.z };
+    pub fn sub(a: Vector3, b: Vector3) Vector3 {
+        return Vector3{ .x = a.x - b.x, .y = a.y - b.y, .z = a.z - b.z };
     }
-    pub fn div(v: Vector3, vec: Vector3) Vector3 {
-        return Vector3{ .x = v.x / vec.x, .y = v.y / vec.y, .z = v.z / vec.z };
+    pub fn div(a: Vector3, b: Vector3) Vector3 {
+        return Vector3{ .x = a.x / b.x, .y = a.y / b.y, .z = a.z / b.z };
     }
 
     pub fn rotate(v: Vector3, axis: Vector3) Vector3 {
@@ -90,5 +98,20 @@ pub const Vector3 = struct {
             .y = v.x * sin(angle) + v.y * cos(angle),
             .z = v.z,
         };
+    }
+    pub fn length(v: Vector3) f32 {
+        return std.math.sqrt(
+            std.math.pow(f32, v.x, 2) + std.math.pow(f32, v.y, 2) + std.math.pow(f32, v.z, 2),
+        );
+    }
+    pub fn cross(a: Vector3, b: Vector3) Vector3 {
+        return Vector3{
+            .x = a.y * b.z - a.z * b.y,
+            .y = a.z * b.x - a.x * b.z,
+            .z = a.x * b.y - a.y * b.x,
+        };
+    }
+    pub fn dot(a: Vector3, b: Vector3) f32 {
+        return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 };

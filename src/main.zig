@@ -12,7 +12,7 @@ const Entity = @import("geometry.zig").Entity;
 const Triangle = @import("geometry.zig").Triangle;
 const read_obj_file = @import("reader.zig").read_obj_file;
 
-const FPS = 60;
+const FPS = 30;
 const FRAME_TARGET_TIME: u32 = 1000 / FPS;
 var previous_frame_time: u32 = 0;
 var triangles_to_render: ArrayList(Triangle) = undefined;
@@ -50,8 +50,8 @@ fn update(mesh: *Mesh, entity: *Entity, camera: *Camera) !void {
 
     entity.rotation = entity.rotation.add(.{
         .x = 0.01,
-        .y = 0,
-        .z = 0,
+        .y = 0.01,
+        .z = 0.01,
     });
 
     for (mesh.faces.items) |face| {
@@ -60,12 +60,29 @@ fn update(mesh: *Mesh, entity: *Entity, camera: *Camera) !void {
         face_vertices[1] = mesh.vertices.items[face.b - 1];
         face_vertices[2] = mesh.vertices.items[face.c - 1];
 
+        // Transforming
+        for (face_vertices) |vertex, face_index| {
+            face_vertices[face_index] = vertex.rotate(entity.rotation).add(.{ .x = 0, .y = 0, .z = 5 });
+        }
+
+        // Backface culling
+        var face_normal = Vector3.cross(
+            face_vertices[1].sub(face_vertices[0]),
+            face_vertices[2].sub(face_vertices[0]),
+        );
+        var camera_ray = camera.position.sub(face_vertices[0]);
+        var dot_alignment = camera_ray.dot(face_normal);
+        if (dot_alignment < 0) {
+            continue;
+        }
+
+        // Projecting
         var projected_triangle: Triangle = undefined;
         for (face_vertices) |vertex, face_index| {
-            var transformed = vertex.rotate(entity.rotation).sub(camera.position);
-            var projected = Vector2.from_vec3(transformed).mult_scalar(camera.fov).div_scalar(transformed.z);
+            var projected = Vector2.from_vec3(vertex).mult_scalar(camera.fov).div_scalar(vertex.z);
             projected_triangle.points[face_index] = projected;
         }
+
         try triangles_to_render.append(projected_triangle);
     }
 }
@@ -118,7 +135,7 @@ pub fn main() anyerror!void {
     var window = try Window.init(width, height, false);
     var renderer = try Renderer.init(&allocator, &window);
     var is_running = true;
-    var camera = Camera{ .position = Vector3{ .x = 0, .y = 0, .z = -5 }, .fov = 640 };
+    var camera = Camera{ .position = Vector3{ .x = 0, .y = 0, .z = 0 }, .fov = 640 };
 
     var mesh = try read_obj_file(allocator, "models/cube.obj");
     var entity = Entity{ .rotation = .{
