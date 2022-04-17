@@ -42,6 +42,10 @@ pub const Vector2 = struct {
     pub fn dot(a: Vector2, b: Vector2) f32 {
         return a.x * b.x + a.y * b.y;
     }
+
+    pub fn normalize(v: Vector2) Vector2 {
+        return v.div_scalar(v.length());
+    }
 };
 
 pub const Vector3 = struct {
@@ -113,5 +117,9 @@ pub const Vector3 = struct {
     }
     pub fn dot(a: Vector3, b: Vector3) f32 {
         return a.x * b.x + a.y * b.y + a.z * b.z;
+    }
+
+    pub fn normalize(v: Vector3) Vector3 {
+        return v.div_scalar(v.length());
     }
 };

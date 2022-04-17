@@ -12,7 +12,7 @@ const Entity = @import("geometry.zig").Entity;
 const Triangle = @import("geometry.zig").Triangle;
 const read_obj_file = @import("reader.zig").read_obj_file;
 
-const FPS = 30;
+const FPS = 60;
 const FRAME_TARGET_TIME: u32 = 1000 / FPS;
 var previous_frame_time: u32 = 0;
 var triangles_to_render: ArrayList(Triangle) = undefined;
@@ -69,7 +69,7 @@ fn update(mesh: *Mesh, entity: *Entity, camera: *Camera) !void {
         var face_normal = Vector3.cross(
             face_vertices[1].sub(face_vertices[0]),
             face_vertices[2].sub(face_vertices[0]),
-        );
+        ).normalize();
         var camera_ray = camera.position.sub(face_vertices[0]);
         var dot_alignment = camera_ray.dot(face_normal);
         if (dot_alignment < 0) {
