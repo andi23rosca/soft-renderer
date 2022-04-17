@@ -16,6 +16,7 @@ const FPS = 60;
 const FRAME_TARGET_TIME: u32 = 1000 / FPS;
 var previous_frame_time: u32 = 0;
 var triangles_to_render: ArrayList(Triangle) = undefined;
+var backface_culling = true;
 
 fn process_events(is_running: *bool) !void {
     var event: c.SDL_Event = undefined;
@@ -25,10 +26,17 @@ fn process_events(is_running: *bool) !void {
                 is_running.* = false;
             },
             c.SDL_KEYDOWN => {
-                if (event.key.keysym.sym == c.SDLK_ESCAPE) {
-                    is_running.* = false;
+                switch (event.key.keysym.sym) {
+                    c.SDLK_ESCAPE => {
+                        is_running.* = false;
+                    },
+                    c.SDLK_SPACE => {
+                        backface_culling = !backface_culling;
+                    },
+                    else => {},
                 }
             },
+
             else => {},
         }
     }
@@ -66,14 +74,16 @@ fn update(mesh: *Mesh, entity: *Entity, camera: *Camera) !void {
         }
 
         // Backface culling
-        var face_normal = Vector3.cross(
-            face_vertices[1].sub(face_vertices[0]),
-            face_vertices[2].sub(face_vertices[0]),
-        ).normalize();
-        var camera_ray = camera.position.sub(face_vertices[0]);
-        var dot_alignment = camera_ray.dot(face_normal);
-        if (dot_alignment < 0) {
-            continue;
+        if (backface_culling) {
+            var face_normal = Vector3.cross(
+                face_vertices[1].sub(face_vertices[0]),
+                face_vertices[2].sub(face_vertices[0]),
+            ).normalize();
+            var camera_ray = camera.position.sub(face_vertices[0]);
+            var dot_alignment = camera_ray.dot(face_normal);
+            if (dot_alignment < 0) {
+                continue;
+            }
         }
 
         // Projecting
