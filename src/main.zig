@@ -57,9 +57,9 @@ fn update(mesh: *Mesh, entity: *Entity, camera: *Camera) !void {
     try triangles_to_render.resize(0);
 
     entity.rotation = entity.rotation.add(.{
-        .x = 0.01,
+        .x = 0,
         .y = 0.01,
-        .z = 0.01,
+        .z = 0,
     });
 
     for (mesh.faces.items) |face| {
@@ -149,7 +149,7 @@ pub fn main() anyerror!void {
 
     var mesh = try read_obj_file(allocator, "models/cube.obj");
     var entity = Entity{ .rotation = .{
-        .x = 0,
+        .x = 3.14,
         .y = 0,
         .z = 0,
     } };

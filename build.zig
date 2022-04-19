@@ -14,9 +14,23 @@ pub fn build(b: *std.build.Builder) void {
     const exe = b.addExecutable("soft-renderer", "src/main.zig");
     exe.setTarget(target);
 
-    exe.addLibPath("/usr/local/Cellar/sdl2/2.0.20/include/SDL2");
     exe.linkSystemLibrary("sdl2");
     exe.linkSystemLibrary("SDL2_image");
+
+    exe.linkSystemLibrary("iconv");
+    exe.linkFramework("AppKit");
+    exe.linkFramework("AudioToolbox");
+    exe.linkFramework("Carbon");
+    exe.linkFramework("Cocoa");
+    exe.linkFramework("CoreAudio");
+    exe.linkFramework("CoreFoundation");
+    exe.linkFramework("CoreGraphics");
+    exe.linkFramework("CoreHaptics");
+    exe.linkFramework("CoreVideo");
+    exe.linkFramework("ForceFeedback");
+    exe.linkFramework("GameController");
+    exe.linkFramework("IOKit");
+    exe.linkFramework("Metal");
 
     exe.setBuildMode(mode);
     exe.install();
